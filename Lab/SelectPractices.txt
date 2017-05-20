@@ -156,12 +156,17 @@ where CategoryID in ('1','4','8')
 
 
 -- 240 請列出各類產品的平均單價。
-select CategoryID,avg(UnitPrice) as AvgPrice from Products
-	group by CategoryID having avg(UnitPrice) >30
+select CategoryID,avg(UnitPrice) as AvgPrice 
+    /*into #Temp1 新增資料表#代表虛擬資料表*/
+	from Products
+	group by CategoryID 
+	having avg(UnitPrice) >30
 
-
+sp_who 
 -- 250 請列出平均單價最高的前三類產品。
-
+select top 3 CategoryID, Avg(UnitPrice) as AveragePrice from products
+  group by CategoryID
+  order by Avg(UnitPrice) desc
 
 
 
@@ -169,7 +174,7 @@ select CategoryID,avg(UnitPrice) as AvgPrice from Products
   請寫一道指令, 列出 products 資料表的以下欄位
   ProductID, ProductName, SupplierID
  */ 
-
+ select ProductID, ProductName, SupplierID from Products
 
 
 
@@ -178,9 +183,17 @@ select CategoryID,avg(UnitPrice) as AvgPrice from Products
    聯絡電話(Phone)、聯絡人(ContactName)好嗎?
    另外, 相同供應商的資料請列在一起
  */ 
+ select ProductID, ProductName,p.SupplierID,CompanyName,Phone,ContactName 
+ from Products p join Suppliers s
+ on p.SupplierID = s.SupplierID
+ order by p.SupplierID
 
+ select ProductID, ProductName as PN, p.SupplierID, CompanyName, Phone, ContactName 
+  from products p join suppliers s
+  on p.SupplierID = s.SupplierID
+  order by p.SupplierID
 
-
+   
 
 /* 330
    我想列出「所有」供應商目前各自提供我們哪些產品資料的對照表,
@@ -195,36 +208,66 @@ select CategoryID,avg(UnitPrice) as AvgPrice from Products
      ('Taiwan First', 'A-Ban', '(001) 000-0001')
    -- end --
  */ 
+ select s.SupplierID, CompanyName, ProductID, ProductName 
+  from suppliers s left join products p
+  on s.SupplierID = p.SupplierID
+  order by s.SupplierID
 
 
 
 
 -- (Optional)
 -- 340 請列出員工及其員工直屬老闆（ReportsTo）的清單。
+select * from Employees
 
-
+select EmployeeID, (FirstName + ' ' + LastName) as EmployeeName, ReportsTo
+  from Employees
 
 
 /* 410
   請列出各項產品的類別、編號、品名、單價、
   該類產品平均單價、單價與產品平均單價的「價差」。
 */
-
+select CategoryID,ProductID,ProductName,UnitPrice 
+ ,(select avg(UnitPrice) from Products) as AvgPrice,
+ UnitPrice-(select avg(UnitPrice) from Products) as pricediff
+from Products
 
 
 
 /* 420
    請列出有訂第三類產品的訂單。
 */
-
-
-
+select * from orders
+  where OrderID in 
+    (select OrderID from [order details]
+      where ProductID in (select ProductID from Products where CategoryID = 3))
 
 
 /* 430
   請列出賣得最好前三項產品。
 */
+select * from Products
+select * from [Order Details] 
+
+select ProductID, Quantity from [order details]
 
 
+select ProductID, Sum(Quantity) as SumQ from [order details]
+  group by ProductID
+  order by Sum(Quantity) desc
+
+select top 3 ProductID from [Order Details]
+group by ProductID
+order by sum(Quantity) desc
+
+select * from Products
+group by CategoryID
+where ProductID in
+(
+select top 3 ProductID from [Order Details]
+group by ProductID
+order by sum(Quantity) desc
+) 
 
 
